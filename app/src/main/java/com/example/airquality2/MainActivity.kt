@@ -18,8 +18,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.airquality2.retrofit.AirQualityResponse
+import com.example.airquality2.retrofit.AirQualityService
+import com.example.airquality2.retrofit.RetrofitConnection
 import java.io.IOException
 import java.util.Locale
+import javax.security.auth.callback.Callback
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -55,8 +59,17 @@ class MainActivity : AppCompatActivity() {
                 binding.tvLocationTitle.text = "${it.thoroughfare}"
                 binding.tvLocationSubtitle.text = "${it.countryName} ${it.adminArea}"
             }
+            getAirQualityData(latitude, longitude)
         } else {
             Toast.makeText(this@MainActivity, "위도, 경도 정보를 가져올 수 없습니다. 새로고침을 눌러주세요." , Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun getAirQualityData(latitude: Double, longitude: Double) {
+        val retrofitAPI = RetrofitConnection.getInstance().create(AirQualityService::class.java)
+
+        retrofitAPI.getAirQualityData(latitude.toString(), longitude.toString(), "6adddc22-eab9-4f28-9389-30e7049fe085").enqueue(object : Callback<AirQualityResponse> {
+
         }
     }
 
