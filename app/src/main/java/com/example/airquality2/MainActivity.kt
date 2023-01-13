@@ -21,6 +21,8 @@ import androidx.core.content.ContextCompat
 import com.example.airquality2.retrofit.AirQualityResponse
 import com.example.airquality2.retrofit.AirQualityService
 import com.example.airquality2.retrofit.RetrofitConnection
+import retrofit2.Call
+import retrofit2.Response
 import java.io.IOException
 import java.util.Locale
 import javax.security.auth.callback.Callback
@@ -68,9 +70,21 @@ class MainActivity : AppCompatActivity() {
     private fun getAirQualityData(latitude: Double, longitude: Double) {
         val retrofitAPI = RetrofitConnection.getInstance().create(AirQualityService::class.java)
 
-        retrofitAPI.getAirQualityData(latitude.toString(), longitude.toString(), "6adddc22-eab9-4f28-9389-30e7049fe085").enqueue(object : Callback<AirQualityResponse> {
-
-        }
+        retrofitAPI.getAirQualityData(latitude.toString(), longitude.toString(), "6adddc22-eab9-4f28-9389-30e7049fe085")
+            .enqueue(object : Callback<AirQualityResponse> {
+                override fun onRespose(call: Call<AirQualityResponse>, response: Response<AirQualityResponse>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@MainActivity, "최신 정보 업데이트 완료!", Toast.LENGTH_SHORT).show()
+                        response.body()?.let { updateAirUI(it) }
+                    } else {
+                        Toast.makeText(this@MainActivity, "업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onFailure(call: Call<AirQualityResponse>, t: Throwable) {
+                    t.printStackTrace()
+                    Toast.makeText(this@MainActivity, "업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+        })
     }
 
     private fun checkAllPermissions() {
