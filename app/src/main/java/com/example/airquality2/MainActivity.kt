@@ -12,6 +12,7 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.LocationManager
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,11 +22,15 @@ import androidx.core.content.ContextCompat
 import com.example.airquality2.retrofit.AirQualityResponse
 import com.example.airquality2.retrofit.AirQualityService
 import com.example.airquality2.retrofit.RetrofitConnection
+
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import java.util.Locale
-import javax.security.auth.callback.Callback
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -47,6 +52,13 @@ class MainActivity : AppCompatActivity() {
 
         checkAllPermissions()
         updateUI()
+        setRefreshButton()
+    }
+
+    private fun setRefreshButton() {
+        binding.btnRefresh.setOnClickListener {
+            updateUI()
+        }
     }
 
     private fun updateUI() {
@@ -54,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         val latitude: Double = locationProvider.getLocationLatitude()
         val longitude: Double = locationProvider.getLocationLongitude()
-
+        Log.d("좌표","lat: $latitude, lon: $longitude")
         if (latitude != 0.0 || longitude != 0.0) {
             val address = getCurrentAddress(latitude, longitude)
             address?.let {
@@ -70,21 +82,50 @@ class MainActivity : AppCompatActivity() {
     private fun getAirQualityData(latitude: Double, longitude: Double) {
         val retrofitAPI = RetrofitConnection.getInstance().create(AirQualityService::class.java)
 
-        retrofitAPI.getAirQualityData(latitude.toString(), longitude.toString(), "6adddc22-eab9-4f28-9389-30e7049fe085")
-            .enqueue(object : Callback<AirQualityResponse> {
-                override fun onRespose(call: Call<AirQualityResponse>, response: Response<AirQualityResponse>) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@MainActivity, "최신 정보 업데이트 완료!", Toast.LENGTH_SHORT).show()
-                        response.body()?.let { updateAirUI(it) }
-                    } else {
-                        Toast.makeText(this@MainActivity, "업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                override fun onFailure(call: Call<AirQualityResponse>, t: Throwable) {
-                    t.printStackTrace()
+        retrofitAPI.getAirQualityData(latitude.toString(), longitude.toString(), "6adddc22-eab9-4f28-9389-30e7049fe085").enqueue(object : Callback<AirQualityResponse> {
+            override fun onResponse(call: Call<AirQualityResponse>, response: Response<AirQualityResponse>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@MainActivity, "최신 정보 업데이트 완료!", Toast.LENGTH_SHORT).show()
+                    response.body()?.let { updateAirUI(it) }
+                } else {
                     Toast.makeText(this@MainActivity, "업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
+            }
+            override fun onFailure(call: Call<AirQualityResponse>, t: Throwable) {
+                t.printStackTrace()
+                Toast.makeText(this@MainActivity, "업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
         })
+    }
+
+    private fun updateAirUI(airQualityData: AirQualityResponse) {
+        val pollutionData = airQualityData.data.current.pollution
+
+        binding.tvCount.text = pollutionData.aqius.toString()
+
+        val dateTime = ZonedDateTime.parse(pollutionData.ts).withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+        val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+        binding.tvCheckTime.text = dateTime.format(dateFormatter).toString()
+
+        when (pollutionData.aqius) {
+            in 0..50 -> {
+                binding.tvTitle.text = "좋음"
+                binding.imgBg.setImageResource(R.drawable.bg_good)
+            }
+            in 51..150 -> {
+                binding.tvTitle.text = "보통"
+                binding.imgBg.setImageResource(R.drawable.bg_soso)
+            }
+            in 151..200 -> {
+                binding.tvTitle.text = "나쁨"
+                binding.imgBg.setImageResource(R.drawable.bg_bad)
+            }
+            else -> {
+                binding.tvTitle.text = "매우 나쁨"
+                binding.imgBg.setImageResource(R.drawable.bg_worst)
+            }
+        }
     }
 
     private fun checkAllPermissions() {
