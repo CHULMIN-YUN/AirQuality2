@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() {
             if (result?.resultCode ?: 0 == Activity.RESULT_OK) {
                 latitude = result?.data?.getDoubleExtra("latitude", 0.0) ?: 0.0
                 longitude = result?.data?.getDoubleExtra("longitude", 0.0) ?: 0.0
+                updateUI()
             }
         }
     })

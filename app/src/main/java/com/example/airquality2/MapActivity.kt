@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.airquality2.databinding.ActivityMainBinding
+import android.util.Log
 import com.example.airquality2.databinding.ActivityMapBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -49,7 +49,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap?.let {
             val currentLocation = LatLng(currentLat, currentLng)
             it.setMaxZoomPreference(20.0f)
-            it.setMinZoomPreference(12.0f)
+            it.setMinZoomPreference(5.0f)
             it.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 16f))
         }
 

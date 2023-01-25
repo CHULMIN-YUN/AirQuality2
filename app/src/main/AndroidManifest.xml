@@ -16,13 +16,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AirQuality2"
         tools:targetApi="31" >
-        <activity
-            android:name=".MapActivity"
-            android:exported="false" >
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDnrDbAB9t5GdAq7KwVabICxmvN3c1tXXI" />
+        <activity android:name=".MapActivity"
+            android:exported="true" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true" >
@@ -31,10 +31,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-            <meta-data
-                android:name="com.google.android.geo.API_KEY"
-                android:value="com.example.airquality2:80:CB:5C:65:5A:30:B7:06:82:BB:CF:19:86:3A:F8:6C:AC:07:65:2E" />
         </activity>
     </application>
 
